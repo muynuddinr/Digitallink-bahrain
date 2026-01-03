@@ -30,6 +30,8 @@ export default function SubCategoriesPage() {
     description: '',
     image_url: ''
   });
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -86,6 +88,7 @@ export default function SubCategoriesPage() {
       description: item.description || '',
       image_url: item.image_url || ''
     });
+    setImagePreview(item.image_url || '');
     setShowModal(true);
   };
 
@@ -104,6 +107,7 @@ export default function SubCategoriesPage() {
     setShowModal(false);
     setEditingItem(null);
     setFormData({ category_id: '', name: '', slug: '', description: '', image_url: '' });
+    setImagePreview('');
   };
 
   const generateSlug = (name: string) => {
@@ -112,6 +116,36 @@ export default function SubCategoriesPage() {
 
   const getCategoryName = (categoryId: string) => {
     return categories.find(c => c.id === categoryId)?.name || 'Unknown';
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploadLoading(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormData({ ...formData, image_url: data.url });
+        setImagePreview(data.url);
+      } else {
+        alert('Failed to upload image: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload image');
+    } finally {
+      setImageUploadLoading(false);
+    }
   };
 
   if (loading) {
@@ -154,10 +188,14 @@ export default function SubCategoriesPage() {
         ) : (
           subCategories.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-              <div className="h-32 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                <svg className="w-12 h-12 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
+              <div className="h-32 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center overflow-hidden">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-12 h-12 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                )}
               </div>
               <div className="p-6">
                 <div className="mb-2">
@@ -247,6 +285,46 @@ export default function SubCategoriesPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                <div className="space-y-3">
+                  {imagePreview && (
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden border border-gray-300">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreview('');
+                          setFormData({ ...formData, image_url: '' });
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <label className={`flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:border-purple-500 transition ${imageUploadLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <div className="text-center">
+                      <svg className="mx-auto h-8 w-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {imageUploadLoading ? 'Uploading...' : 'Click to upload image'}
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={imageUploadLoading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
 
               <div className="flex space-x-3 pt-4">

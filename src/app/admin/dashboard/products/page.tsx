@@ -7,14 +7,15 @@ interface Product {
   name: string;
   slug: string;
   description?: string;
-  price: number;
   category_id: string;
   sub_category_id?: string;
   super_sub_category_id?: string;
-  image_url?: string;
-  stock: number;
+  image_1?: string;
+  image_2?: string;
+  image_3?: string;
+  image_4?: string;
   is_featured: boolean;
-  status: 'active' | 'inactive' | 'out_of_stock';
+  status: 'active' | 'inactive';
   created_at: string;
 }
 
@@ -30,14 +31,27 @@ export default function ProductsPage() {
     name: '',
     slug: '',
     description: '',
-    price: 0,
     category_id: '',
     sub_category_id: '',
     super_sub_category_id: '',
-    image_url: '',
-    stock: 0,
+    image_1: '',
+    image_2: '',
+    image_3: '',
+    image_4: '',
     is_featured: false,
-    status: 'active' as 'active' | 'inactive' | 'out_of_stock'
+    status: 'active' as 'active' | 'inactive'
+  });
+  const [imageUploadLoading, setImageUploadLoading] = useState<{[key: string]: boolean}>({
+    image_1: false,
+    image_2: false,
+    image_3: false,
+    image_4: false
+  });
+  const [imagePreviews, setImagePreviews] = useState<{[key: string]: string}>({
+    image_1: '',
+    image_2: '',
+    image_3: '',
+    image_4: ''
   });
 
   useEffect(() => {
@@ -66,6 +80,12 @@ export default function ProductsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.name || !formData.slug || !formData.category_id || !formData.super_sub_category_id || !formData.image_1) {
+      alert('Please fill in all required fields (Name, Slug, Category, Super Sub Category, and at least Image 1)');
+      return;
+    }
+
     try {
       const url = editingItem 
         ? `/api/admin/products/${editingItem.id}`
@@ -80,9 +100,13 @@ export default function ProductsPage() {
       if (response.ok) {
         fetchData();
         closeModal();
+      } else {
+        const error = await response.json();
+        alert('Error saving product: ' + (error.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('Failed to save product:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Failed to save product'));
     }
   };
 
@@ -92,14 +116,21 @@ export default function ProductsPage() {
       name: item.name,
       slug: item.slug,
       description: item.description || '',
-      price: item.price,
       category_id: item.category_id,
       sub_category_id: item.sub_category_id || '',
       super_sub_category_id: item.super_sub_category_id || '',
-      image_url: item.image_url || '',
-      stock: item.stock,
+      image_1: item.image_1 || '',
+      image_2: item.image_2 || '',
+      image_3: item.image_3 || '',
+      image_4: item.image_4 || '',
       is_featured: item.is_featured,
       status: item.status
+    });
+    setImagePreviews({
+      image_1: item.image_1 || '',
+      image_2: item.image_2 || '',
+      image_3: item.image_3 || '',
+      image_4: item.image_4 || ''
     });
     setShowModal(true);
   };
@@ -121,14 +152,21 @@ export default function ProductsPage() {
       name: '',
       slug: '',
       description: '',
-      price: 0,
       category_id: '',
       sub_category_id: '',
       super_sub_category_id: '',
-      image_url: '',
-      stock: 0,
+      image_1: '',
+      image_2: '',
+      image_3: '',
+      image_4: '',
       is_featured: false,
       status: 'active'
+    });
+    setImagePreviews({
+      image_1: '',
+      image_2: '',
+      image_3: '',
+      image_4: ''
     });
   };
 
@@ -144,8 +182,37 @@ export default function ProductsPage() {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'out_of_stock': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, imageNumber: 'image_1' | 'image_2' | 'image_3' | 'image_4') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploadLoading({ ...imageUploadLoading, [imageNumber]: true });
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormData({ ...formData, [imageNumber]: data.url });
+        setImagePreviews({ ...imagePreviews, [imageNumber]: data.url });
+      } else {
+        alert('Failed to upload image: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload image');
+    } finally {
+      setImageUploadLoading({ ...imageUploadLoading, [imageNumber]: false });
     }
   };
 
@@ -183,8 +250,6 @@ export default function ProductsPage() {
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Product</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Price</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Stock</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
@@ -192,7 +257,7 @@ export default function ProductsPage() {
             <tbody className="divide-y divide-gray-200">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={4} className="px-6 py-12 text-center">
                     <p className="text-gray-600 mb-4">No products found</p>
                     <button
                       onClick={() => setShowModal(true)}
@@ -220,8 +285,6 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-900">{getCategoryName(product.category_id)}</td>
-                    <td className="px-6 py-4 text-gray-900 font-semibold">${product.price}</td>
-                    <td className="px-6 py-4 text-gray-900">{product.stock}</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(product.status)}`}>
                         {product.status}
@@ -295,83 +358,52 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Stock *</label>
-                  <input
-                    type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                   <select
                     value={formData.category_id}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      category_id: e.target.value,
-                      sub_category_id: '', // Reset sub-category when category changes
-                      super_sub_category_id: '' // Reset super sub-category
-                    })}
+                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value, sub_category_id: '', super_sub_category_id: '' })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     required
                   >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
+                    <option value="">Select category</option>
+                    {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sub Category {formData.category_id ? '' : '(Select category first)'}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sub Category</label>
                   <select
                     value={formData.sub_category_id}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      sub_category_id: e.target.value,
-                      super_sub_category_id: '' // Reset super sub-category when sub-category changes
-                    })}
+                    onChange={(e) => setFormData({ ...formData, sub_category_id: e.target.value, super_sub_category_id: '' })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     disabled={!formData.category_id}
                   >
-                    <option value="">None</option>
-                    {subCategories.filter(s => s.category_id === formData.category_id).map((sub) => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
-                    ))}
+                    <option value="">Select sub-category</option>
+                    {subCategories
+                      .filter(sub => sub.category_id === formData.category_id)
+                      .map(sub => (
+                        <option key={sub.id} value={sub.id}>{sub.name}</option>
+                      ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Super Sub Category {formData.sub_category_id ? '' : '(Select sub-category first)'}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Super Sub Category *</label>
                   <select
                     value={formData.super_sub_category_id}
                     onChange={(e) => setFormData({ ...formData, super_sub_category_id: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    required
                     disabled={!formData.sub_category_id}
                   >
-                    <option value="">None</option>
-                    {superSubCategories.filter(s => s.sub_category_id === formData.sub_category_id).map((super_) => (
-                      <option key={super_.id} value={super_.id}>{super_.name}</option>
-                    ))}
+                    <option value="">Select super sub-category</option>
+                    {superSubCategories
+                      .filter(super_sub => super_sub.sub_category_id === formData.sub_category_id)
+                      .map(super_sub => (
+                        <option key={super_sub.id} value={super_sub.id}>{super_sub.name}</option>
+                      ))}
                   </select>
                 </div>
 
@@ -379,24 +411,13 @@ export default function ProductsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     required
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
-                    <option value="out_of_stock">Out of Stock</option>
                   </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
                 </div>
 
                 <div className="md:col-span-2">
@@ -407,6 +428,147 @@ export default function ProductsPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     rows={4}
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-4">Product Images (4 total - 1 required, 3 optional)</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Image 1 - Required */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Image 1 * (Required)</label>
+                      {imagePreviews.image_1 && (
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-300 mb-2">
+                          <img src={imagePreviews.image_1} alt="Preview 1" className="w-full h-full object-cover" />
+                          <button 
+                            type="button" 
+                            onClick={() => { 
+                              setImagePreviews({ ...imagePreviews, image_1: '' }); 
+                              setFormData({ ...formData, image_1: '' }); 
+                            }} 
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                      <label className={`flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-500 transition ${imageUploadLoading.image_1 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'image_1')} 
+                          disabled={imageUploadLoading.image_1} 
+                          className="hidden" 
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700">
+                            {imageUploadLoading.image_1 ? 'Uploading...' : 'Upload Image 1'}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Image 2 - Optional */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Image 2 (Optional)</label>
+                      {imagePreviews.image_2 && (
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-300 mb-2">
+                          <img src={imagePreviews.image_2} alt="Preview 2" className="w-full h-full object-cover" />
+                          <button 
+                            type="button" 
+                            onClick={() => { 
+                              setImagePreviews({ ...imagePreviews, image_2: '' }); 
+                              setFormData({ ...formData, image_2: '' }); 
+                            }} 
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                      <label className={`flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-500 transition ${imageUploadLoading.image_2 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'image_2')} 
+                          disabled={imageUploadLoading.image_2} 
+                          className="hidden" 
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700">
+                            {imageUploadLoading.image_2 ? 'Uploading...' : 'Upload Image 2'}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Image 3 - Optional */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Image 3 (Optional)</label>
+                      {imagePreviews.image_3 && (
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-300 mb-2">
+                          <img src={imagePreviews.image_3} alt="Preview 3" className="w-full h-full object-cover" />
+                          <button 
+                            type="button" 
+                            onClick={() => { 
+                              setImagePreviews({ ...imagePreviews, image_3: '' }); 
+                              setFormData({ ...formData, image_3: '' }); 
+                            }} 
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                      <label className={`flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-500 transition ${imageUploadLoading.image_3 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'image_3')} 
+                          disabled={imageUploadLoading.image_3} 
+                          className="hidden" 
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700">
+                            {imageUploadLoading.image_3 ? 'Uploading...' : 'Upload Image 3'}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Image 4 - Optional */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Image 4 (Optional)</label>
+                      {imagePreviews.image_4 && (
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-300 mb-2">
+                          <img src={imagePreviews.image_4} alt="Preview 4" className="w-full h-full object-cover" />
+                          <button 
+                            type="button" 
+                            onClick={() => { 
+                              setImagePreviews({ ...imagePreviews, image_4: '' }); 
+                              setFormData({ ...formData, image_4: '' }); 
+                            }} 
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                      <label className={`flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-500 transition ${imageUploadLoading.image_4 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, 'image_4')} 
+                          disabled={imageUploadLoading.image_4} 
+                          className="hidden" 
+                        />
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700">
+                            {imageUploadLoading.image_4 ? 'Uploading...' : 'Upload Image 4'}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -437,3 +599,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

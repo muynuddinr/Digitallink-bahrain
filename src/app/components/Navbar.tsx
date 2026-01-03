@@ -21,6 +21,14 @@ import {
 import Image from 'next/image';
 import Logo from '../../assets/Logoxmas.png';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,6 +36,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpenDropdown, setMobileOpenDropdown] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const navRef = useRef<HTMLDivElement>(null);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,6 +52,23 @@ export default function Navbar() {
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Prevent background scroll when mobile menu is open
@@ -84,8 +110,15 @@ export default function Navbar() {
       label: 'Home'
     },
     { 
-      href: '/product', 
-      label: 'Products'
+      href: '/categories', 
+      label: 'Products',
+      hasDropdown: true,
+      dropdownItems: categories.map(cat => ({
+        href: `/categories/${cat.slug}`,
+        label: cat.name,
+        icon: <HiOutlineShieldCheck className="w-4 h-4" />,
+        description: cat.description || `Browse ${cat.name}`
+      }))
     },
     { 
       href: '/Solutions', 

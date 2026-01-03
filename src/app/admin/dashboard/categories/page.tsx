@@ -19,8 +19,7 @@ export default function CategoriesPage() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    description: '',
-    image_url: ''
+    description: ''
   });
 
   useEffect(() => {
@@ -69,8 +68,7 @@ export default function CategoriesPage() {
     setFormData({
       name: category.name,
       slug: category.slug,
-      description: category.description || '',
-      image_url: category.image_url || ''
+      description: category.description || ''
     });
     setShowModal(true);
   };
@@ -89,7 +87,7 @@ export default function CategoriesPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingCategory(null);
-    setFormData({ name: '', slug: '', description: '', image_url: '' });
+    setFormData({ name: '', slug: '', description: '' });
   };
 
   const generateSlug = (name: string) => {
@@ -141,22 +139,11 @@ export default function CategoriesPage() {
         ) : (
           categories.map((category) => (
             <div key={category.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-              {category.image_url && (
-                <div className="h-48 bg-gradient-to-br from-blue-400 to-purple-500 relative">
-                  <img 
-                    src={category.image_url} 
-                    alt={category.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              {!category.image_url && (
-                <div className="h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                </div>
-              )}
+              <div className="h-32 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                <svg className="w-16 h-16 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{category.name}</h3>
                 <p className="text-sm text-gray-600 mb-1">Slug: {category.slug}</p>
@@ -243,19 +230,6 @@ export default function CategoriesPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://example.com/image.jpg"
                 />
               </div>
 
