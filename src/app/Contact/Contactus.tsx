@@ -224,7 +224,7 @@ export default function ContactPage() {
     setSubmitStatus(null);
 
     try {
-      const response = await fetch('/api/auth/contact', {
+      const response = await fetch('/api/contact-enquiries', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

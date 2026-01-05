@@ -14,10 +14,40 @@ import { useEffect, useState } from 'react';
 
 export default function Footer() {
   const [isMounted, setIsMounted] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<null | 'success' | 'error'>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await fetch('/api/newsletter-enquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setEmail('');
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const aboutLinks = [
     { href: '/about', label: 'About Us' },
@@ -314,28 +344,46 @@ export default function Footer() {
               Stay updated with our latest news and offers. Subscribe to our newsletter.
             </p>
             <div className="space-y-4">
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300/50 rounded-lg text-gray-800 placeholder-gray-500/50 focus:outline-none focus:border-blue-800 transition-all"
-                />
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3 bg-gradient-to-r from-blue-900 to-blue-800 rounded-lg text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-900/50 hover:shadow-xl hover:shadow-blue-900/60 transition-all"
-                type="button"
-              >
-                Subscribe
-                <motion.span
-                  initial={{ x: 0 }}
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.2 }}
+              <form onSubmit={handleNewsletterSubmit}>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300/50 rounded-lg text-gray-800 placeholder-gray-500/50 focus:outline-none focus:border-blue-800 transition-all"
+                    required
+                  />
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-3 bg-gradient-to-r from-blue-900 to-blue-800 rounded-lg text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-900/50 hover:shadow-xl hover:shadow-blue-900/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="submit"
+                  disabled={isSubmitting}
                 >
-                  →
-                </motion.span>
-              </motion.button>
+                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                  {!isSubmitting && (
+                    <motion.span
+                      initial={{ x: 0 }}
+                      whileHover={{ x: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      →
+                    </motion.span>
+                  )}
+                </motion.button>
+              </form>
+              {submitStatus === 'success' && (
+                <p className="text-green-600 text-sm mt-2">
+                  ✅ Successfully subscribed to our newsletter!
+                </p>
+              )}
+              {submitStatus === 'error' && (
+                <p className="text-red-600 text-sm mt-2">
+                  ❌ Failed to subscribe. Please try again.
+                </p>
+              )}
             </div>
             <p className="text-gray-500 text-xs mt-3">
               Get the latest updates on digital trends, exclusive offers, and expert insights delivered to your inbox.
