@@ -16,7 +16,7 @@ export default function ClientLayout({
   return (
     <>
       {!isAdminRoute && <Navbar />}
-      <main className="min-h-screen">
+      <main className="">
         {children}
       </main>
       {!isAdminRoute && <Whatsapp />}

@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { FaArrowRight, FaLayerGroup } from 'react-icons/fa';
+import Image from 'next/image';
+import { motion, animate, useMotionValue, useMotionTemplate } from 'framer-motion';
+import { FaLayerGroup } from 'react-icons/fa';
+import { ChevronRight } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -33,6 +35,25 @@ export default function CategoryPage() {
   const [category, setCategory] = useState<CategoryWithSubs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Aurora hero animation
+  const COLORS_TOP = ["#2E5AC2", "#183067"];
+  const color = useMotionValue(COLORS_TOP[0]);
+
+  useEffect(() => {
+    if (!loading && category) {
+      animate(color, COLORS_TOP, {
+        ease: "easeInOut",
+        duration: 10,
+        repeat: Infinity,
+        repeatType: "mirror",
+      });
+    }
+  }, [color, loading, category]);
+
+  const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #ffffff 50%, ${color})`;
+  const border = useMotionTemplate`1px solid ${color}`;
+  const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -79,18 +100,44 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-16 px-4">
-        <div className="container mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.name}</h1>
-          <p className="text-indigo-100 text-lg max-w-2xl">
-            {category.description || `Explore our ${category.name} products`}
+    <div className="bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
+      {/* Aurora Hero Section */}
+      <motion.section
+        style={{
+          backgroundImage,
+        }}
+        className="relative py-24 overflow-hidden"
+      >
+        <div className="relative z-10 flex flex-col items-center px-4">
+          {/* <span className="mb-1.5 inline-block rounded-full bg-gray-200/50 px-3 py-1.5 text-sm">
+            {category?.name || 'Category'}
+          </span> */}
+          <h1 className="max-w-3xl bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-center text-3xl font-medium leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight">
+            {category?.name || 'Loading...'}
+          </h1>
+          <p className="my-6 max-w-xl text-center text-base leading-relaxed text-gray-600 md:text-lg md:leading-relaxed">
+            {category?.description || `Explore our ${category?.name} products`}
           </p>
+          <motion.button
+            style={{
+              border,
+              boxShadow,
+            }}
+            whileHover={{
+              scale: 1.015,
+            }}
+            whileTap={{
+              scale: 0.985,
+            }}
+            className="group relative flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-gray-900 transition-colors hover:bg-white/50"
+          >
+            Explore Products
+            <ChevronRight className="w-4 h-4 transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
+          </motion.button>
         </div>
-      </div>
+      </motion.section>
 
-      <div className="container mx-auto px-4 py-16">
+      <div className="container max-w-7xl mx-auto px-4 py-16">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
           <Link href="/" className="hover:text-indigo-600 transition-colors">
@@ -112,47 +159,132 @@ export default function CategoryPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {category.subCategories.map((subCategory, index) => (
                 <motion.div
                   key={subCategory.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: index * 0.1
+                  }}
                 >
-                  <Link
-                    href={`/categories/${category.slug}/${subCategory.slug}`}
-                    className="group block h-full"
-                  >
-                    <div className="h-full bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-indigo-300">
-                      {/* Image */}
-                      <div className="h-40 bg-gradient-to-br from-indigo-100 to-blue-100 overflow-hidden flex items-center justify-center">
-                        {subCategory.image_url ? (
-                          <img
-                            src={subCategory.image_url}
-                            alt={subCategory.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  <Link href={`/categories/${category.slug}/${subCategory.slug}`}>
+                    <motion.div
+                      className="group relative"
+                      whileHover={{ y: -10 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      {/* Card */}
+                      <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500">
+                        
+                        {/* Image Container */}
+                        <div className="relative h-72 overflow-hidden">
+                          {/* Image */}
+                          {subCategory.image_url ? (
+                            <motion.div
+                              whileHover={{ scale: 1.12 }}
+                              transition={{ duration: 0.7 }}
+                              className="h-full w-full relative"
+                            >
+                              <Image
+                                src={subCategory.image_url}
+                                alt={subCategory.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </motion.div>
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center">
+                              <FaLayerGroup className="w-20 h-20 text-indigo-300" />
+                            </div>
+                          )}
+
+                          {/* Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
+
+                          {/* Blue circle decoration - animated */}
+                          <motion.div
+                            className="absolute -top-10 -right-10 w-32 h-32 bg-blue-600 rounded-full opacity-20 blur-2xl"
+                            animate={{
+                              scale: [1, 1.2, 1],
+                              opacity: [0.2, 0.3, 0.2]
+                            }}
+                            transition={{
+                              duration: 3,
+                              repeat: Infinity,
+                              delay: index * 0.5
+                            }}
                           />
-                        ) : (
-                          <FaLayerGroup className="w-12 h-12 text-indigo-300" />
-                        )}
-                      </div>
-                      {/* Content */}
-                      <div className="p-8">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                          {subCategory.name}
-                        </h3>
-                        {subCategory.description && (
-                          <p className="text-gray-600 mb-4 line-clamp-2">
-                            {subCategory.description}
-                          </p>
-                        )}
-                        <div className="flex items-center text-indigo-600 font-medium group-hover:translate-x-2 transition-transform">
-                          <span>Explore</span>
-                          <FaArrowRight className="ml-2 w-4 h-4" />
+
+                          {/* Bottom content on image */}
+                          <div className="absolute bottom-5 left-5 right-5">
+                            <motion.h3
+                              className="text-2xl font-bold text-white mb-1"
+                              initial={{ y: 10 }}
+                              whileHover={{ y: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              {subCategory.name}
+                            </motion.h3>
+                          </div>
                         </div>
+
+                        {/* Content Section */}
+                        <div className="p-6 bg-white">
+                          {/* Description */}
+                          {subCategory.description && (
+                            <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                              {subCategory.description}
+                            </p>
+                          )}
+
+                          {/* CTA Section */}
+                          <div className="flex items-center justify-between">
+                            <motion.div
+                              className="text-blue-600 font-bold text-sm flex items-center gap-2"
+                              whileHover={{ gap: "12px" }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <span>Explore</span>
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                />
+                              </svg>
+                            </motion.div>
+
+                            {/* Progress bar */}
+                            <div className="flex gap-1">
+                              <motion.div
+                                className="h-1 bg-blue-600 rounded-full"
+                                initial={{ width: "20px" }}
+                                whileHover={{ width: "30px" }}
+                                transition={{ duration: 0.3 }}
+                              />
+                              <div className="h-1 w-1 bg-gray-300 rounded-full" />
+                              <div className="h-1 w-1 bg-gray-300 rounded-full" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Border glow effect */}
+                        <motion.div
+                          className="absolute inset-0 border-2 border-blue-600 rounded-3xl opacity-0 pointer-events-none"
+                          whileHover={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                        />
                       </div>
-                    </div>
+                    </motion.div>
                   </Link>
                 </motion.div>
               ))}
