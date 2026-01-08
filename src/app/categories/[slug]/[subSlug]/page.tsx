@@ -210,7 +210,7 @@ export default function SubCategoryPage() {
                     transition={{ duration: 0.3 }}
                   >
                     {/* Card Container */}
-                    <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500">
+                    <div className="relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500">
                       
                       {/* Image Section */}
                       <div className="relative h-64 overflow-hidden">
