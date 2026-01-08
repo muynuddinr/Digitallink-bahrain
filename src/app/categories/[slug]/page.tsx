@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { motion, animate, useMotionValue, useMotionTemplate } from 'framer-motion';
 import { FaLayerGroup } from 'react-icons/fa';
 import { ChevronRight } from 'lucide-react';
+import heroimage from '../../../assets/Solution.jpg';
+import mobilehero from '../../../assets/Building.jpg';
 
 interface Category {
   id: string;
@@ -121,6 +123,31 @@ export default function CategoryPage() {
         }}
         className="relative py-24 overflow-hidden"
       >
+        {/* Background Image Container */}
+        <div className="absolute inset-0 z-0">
+          {/* Desktop Image */}
+          <Image
+            src={heroimage}
+            alt="Solutions background"
+            fill
+            className="object-cover opacity-20 hidden sm:block"
+            sizes="100vw"
+            priority
+          />
+          {/* Mobile Image */}
+          <Image
+            src={mobilehero}
+            alt="Building background"
+            fill
+            className="object-cover opacity-20 block sm:hidden"
+            sizes="100vw"
+            priority
+          />
+        </div>
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/30 via-white/20 to-transparent" />
+        
         <div className="relative z-10 flex flex-col items-center px-4">
           <motion.h1 
             className="max-w-3xl bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-700 bg-clip-text text-center text-3xl font-extrabold leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight tracking-tight"
