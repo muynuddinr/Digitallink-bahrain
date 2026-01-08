@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,6 +40,9 @@ export default function CategoryPage() {
   const COLORS_TOP = ["#2E5AC2", "#183067"];
   const color = useMotionValue(COLORS_TOP[0]);
 
+  // Ref for scrolling to subcategories
+  const subcategoriesRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!loading && category) {
       animate(color, COLORS_TOP, {
@@ -54,6 +57,16 @@ export default function CategoryPage() {
   const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #ffffff 50%, ${color})`;
   const border = useMotionTemplate`1px solid ${color}`;
   const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
+
+  // Function to scroll to subcategories
+  const scrollToSubcategories = () => {
+    if (subcategoriesRef.current) {
+      subcategoriesRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -109,16 +122,24 @@ export default function CategoryPage() {
         className="relative py-24 overflow-hidden"
       >
         <div className="relative z-10 flex flex-col items-center px-4">
-          {/* <span className="mb-1.5 inline-block rounded-full bg-gray-200/50 px-3 py-1.5 text-sm">
-            {category?.name || 'Category'}
-          </span> */}
-          <h1 className="max-w-3xl bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-center text-3xl font-medium leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight">
+          <motion.h1 
+            className="max-w-3xl bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-700 bg-clip-text text-center text-3xl font-extrabold leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight tracking-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
             {category?.name || 'Loading...'}
-          </h1>
-          <p className="my-6 max-w-xl text-center text-base leading-relaxed text-gray-600 md:text-lg md:leading-relaxed">
+          </motion.h1>
+          <motion.p 
+            className="my-6 max-w-xl text-center text-base leading-relaxed md:text-lg md:leading-relaxed bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-clip-text text-transparent font-medium"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          >
             {category?.description || `Explore our ${category?.name} products`}
-          </p>
+          </motion.p>
           <motion.button
+            onClick={scrollToSubcategories}
             style={{
               border,
               boxShadow,
@@ -129,7 +150,10 @@ export default function CategoryPage() {
             whileTap={{
               scale: 0.985,
             }}
-            className="group relative flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-gray-900 transition-colors hover:bg-white/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            className="group relative flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-gray-900 transition-colors hover:bg-white/50 cursor-pointer"
           >
             Explore Products
             <ChevronRight className="w-4 h-4 transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
@@ -137,7 +161,8 @@ export default function CategoryPage() {
         </div>
       </motion.section>
 
-      <div className="container max-w-7xl mx-auto px-4 py-16">
+      {/* Subcategories Section with ref */}
+      <div ref={subcategoriesRef} className="container max-w-7xl mx-auto px-4 py-16">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
           <Link href="/" className="hover:text-indigo-600 transition-colors">
@@ -177,7 +202,7 @@ export default function CategoryPage() {
                       transition={{ duration: 0.4 }}
                     >
                       {/* Card */}
-                      <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500">
+                      <div className="relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500">
                         
                         {/* Image Container */}
                         <div className="relative h-72 overflow-hidden">
@@ -279,7 +304,7 @@ export default function CategoryPage() {
 
                         {/* Border glow effect */}
                         <motion.div
-                          className="absolute inset-0 border-2 border-blue-600 rounded-3xl opacity-0 pointer-events-none"
+                          className="absolute inset-0 border-2 border-blue-600 rounded-xl opacity-0 pointer-events-none"
                           whileHover={{ opacity: 1 }}
                           transition={{ duration: 0.3 }}
                         />

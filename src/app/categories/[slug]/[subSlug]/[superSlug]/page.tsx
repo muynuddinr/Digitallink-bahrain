@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, animate, useMotionValue, useMotionTemplate } from 'framer-motion';
@@ -60,6 +60,9 @@ export default function SuperSubCategoryPage() {
   const COLORS_TOP = ["#2E5AC2", "#183067"];
   const color = useMotionValue(COLORS_TOP[0]);
 
+  // Ref for scrolling to products section
+  const productsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!loading && superSubCategory) {
       animate(color, COLORS_TOP, {
@@ -74,6 +77,16 @@ export default function SuperSubCategoryPage() {
   const backgroundImage = useMotionTemplate`radial-gradient(125% 125% at 50% 0%, #ffffff 50%, ${color})`;
   const border = useMotionTemplate`1px solid ${color}`;
   const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
+
+  // Function to scroll to products
+  const scrollToProducts = () => {
+    if (productsRef.current) {
+      productsRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchSuperSubCategory = async () => {
@@ -129,13 +142,24 @@ export default function SuperSubCategoryPage() {
         className="relative py-24 overflow-hidden"
       >
         <div className="relative z-10 flex flex-col items-center px-4">
-          <h1 className="max-w-3xl bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-center text-3xl font-medium leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight">
+          <motion.h1 
+            className="max-w-3xl bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-700 bg-clip-text text-center text-3xl font-extrabold leading-tight text-transparent sm:text-5xl sm:leading-tight md:text-7xl md:leading-tight tracking-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
             {superSubCategory?.name || 'Loading...'}
-          </h1>
-          <p className="my-6 max-w-xl text-center text-base leading-relaxed text-gray-600 md:text-lg md:leading-relaxed">
+          </motion.h1>
+          <motion.p 
+            className="my-6 max-w-xl text-center text-base leading-relaxed md:text-lg md:leading-relaxed bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-clip-text text-transparent font-medium"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          >
             {superSubCategory?.products?.length ? `${superSubCategory.products.length} Products Available` : 'Explore our products'}
-          </p>
+          </motion.p>
           <motion.button
+            onClick={scrollToProducts}
             style={{
               border,
               boxShadow,
@@ -146,7 +170,10 @@ export default function SuperSubCategoryPage() {
             whileTap={{
               scale: 0.985,
             }}
-            className="group relative flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-gray-900 transition-colors hover:bg-white/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            className="group relative flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-gray-900 transition-colors hover:bg-white/50 cursor-pointer"
           >
             Explore Products
             <ChevronRight className="w-4 h-4 transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
@@ -154,8 +181,8 @@ export default function SuperSubCategoryPage() {
         </div>
       </motion.section>
 
-      {/* CONTENT SECTION */}
-      <div className="min-h-screen bg-white py-20 px-6">
+      {/* CONTENT SECTION with ref */}
+      <div ref={productsRef} className=" bg-white py-12 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
           <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-16 flex-wrap">
@@ -247,11 +274,11 @@ export default function SuperSubCategoryPage() {
                         </h3>
 
                         {/* Description */}
-                        {product.description && (
+                        {/* {product.description && (
                           <p className="text-gray-600 text-sm mb-5 leading-relaxed line-clamp-2">
                             {product.description}
                           </p>
-                        )}
+                        )} */}
 
                         {/* CTA */}
                         <div className="flex items-center justify-between">

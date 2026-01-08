@@ -11,7 +11,6 @@ import SecurityProducts from './components/SecurityProducts';
 
 
 
-
 export default function HomePage() {
   return (
     <div>
@@ -21,7 +20,6 @@ export default function HomePage() {
       <OurBrand/>
       <OurRealibility/>
       <Faq/>
-
     </div>
   );
 }
