@@ -167,9 +167,21 @@ export default function ProductPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Sidebar - Thumbnails */}
+        {/* Mobile Title & Description - Visible only on mobile, appears before image */}
+        <div className="lg:hidden mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3 leading-tight">
+            {product.name}
+          </h1>
+          {product.description && (
+            <div className="mb-4">
+              <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Product Grid - Thumbnails + Image + Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+          {/* Left - Thumbnails */}
           <div className="lg:col-span-1 order-2 lg:order-1">
             <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
               {images.map((image, index) => (
@@ -193,9 +205,9 @@ export default function ProductPage() {
           </div>
 
           {/* Center - Main Image */}
-          <div className="lg:col-span-6 order-1 lg:order-2">
+          <div className="lg:col-span-5 order-1 lg:order-2">
             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-              <div className="aspect-square bg-gray-100 flex items-center justify-center p-12">
+              <div className="aspect-square bg-gray-100 flex items-center justify-center p-4">
                 {selectedImage ? (
                   <img
                     src={selectedImage}
@@ -213,101 +225,104 @@ export default function ProductPage() {
           </div>
 
           {/* Right - Product Info */}
-          <div className="lg:col-span-5 order-3">
-            <div className="lg:sticky lg:top-8 space-y-6">
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded uppercase tracking-wide">
-                  {superSubCategory.name}
-                </span>
-                {product.is_featured && (
-                  <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded uppercase tracking-wide">
-                    NEW
-                  </span>
-                )}
-                <span className="px-3 py-1 bg-gray-200 text-gray-800 text-xs font-bold rounded uppercase tracking-wide">
-                  {product.status}
-                </span>
-              </div>
-
-              {/* Product Name */}
-              <div>
+          <div className="lg:col-span-6 order-3">
+            <div className="space-y-6">
+              {/* Product Name - Hidden on mobile, visible on desktop */}
+              <div className="hidden lg:block">
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
                   {product.name}
                 </h1>
+                
+                {/* Description */}
                 {product.description && (
-                  <p className="text-gray-600 leading-relaxed">
-                    {product.description.length > 100
-                      ? product.description.substring(0, 100) + '...'
-                      : product.description}
-                  </p>
+                  <div className="mb-4">
+                    <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
+                  </div>
                 )}
               </div>
 
+              {/* Features Section */}
               <div className="border-t border-gray-200 pt-6">
-                {/* Full Description */}
-                {product.description && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide">Description</h3>
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                  </div>
-                )}
-
+                <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">Features</h3>
+                
                 {/* Specifications */}
-                {product.specifications && Object.keys(product.specifications).length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">Specifications</h3>
-                    <div className="bg-gray-100 rounded-lg p-4 space-y-2">
-                      {Object.entries(product.specifications).map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600 font-medium capitalize">{key}:</span>
-                          <span className="text-gray-900 font-semibold">{String(value)}</span>
-                        </div>
-                      ))}
-                    </div>
+                {product.specifications && Object.keys(product.specifications).length > 0 ? (
+                  <div className="bg-gray-100 rounded-lg p-4 space-y-2 mb-6">
+                    {Object.entries(product.specifications).map(([key, value]) => (
+                      <div key={key} className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 font-medium capitalize">{key}:</span>
+                        <span className="text-gray-900 font-semibold">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-100 rounded-lg p-4 mb-6">
+                    <p className="text-gray-600 text-sm">No specifications available for this product.</p>
                   </div>
                 )}
 
                 {/* Product Details */}
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide">Product Details</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
-                      <span className="text-gray-600 font-medium">Product ID</span>
-                      <span className="text-gray-900 font-mono text-xs">{product.id}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
-                      <span className="text-gray-600 font-medium">Category</span>
-                      <Link
-                        href={`/categories/${category.slug}`}
-                        className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                      >
-                        {category.name}
-                      </Link>
-                    </div>
-                    <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
-                      <span className="text-gray-600 font-medium">Sub Category</span>
-                      <Link
-                        href={`/categories/${category.slug}/${subCategory.slug}`}
-                        className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                      >
-                        {subCategory.name}
-                      </Link>
-                    </div>
-                    <div className="flex justify-between items-center text-sm py-2">
-                      <span className="text-gray-600 font-medium">Super Sub Category</span>
-                      <Link
-                        href={`/categories/${category.slug}/${subCategory.slug}/${superSubCategory.slug}`}
-                        className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                      >
-                        {superSubCategory.name}
-                      </Link>
-                    </div>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
+                    <span className="text-gray-600 font-medium">Product ID</span>
+                    <span className="text-gray-900 font-mono text-xs">{product.id}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
+                    <span className="text-gray-600 font-medium">Category</span>
+                    <Link
+                      href={`/categories/${category.slug}`}
+                      className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                    >
+                      {category.name}
+                    </Link>
+                  </div>
+                  <div className="flex justify-between items-center text-sm py-2 border-b border-gray-200">
+                    <span className="text-gray-600 font-medium">Sub Category</span>
+                    <Link
+                      href={`/categories/${category.slug}/${subCategory.slug}`}
+                      className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                    >
+                      {subCategory.name}
+                    </Link>
+                  </div>
+                  <div className="flex justify-between items-center text-sm py-2">
+                    <span className="text-gray-600 font-medium">Super Sub Category</span>
+                    <Link
+                      href={`/categories/${category.slug}/${subCategory.slug}/${superSubCategory.slug}`}
+                      className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                    >
+                      {superSubCategory.name}
+                    </Link>
                   </div>
                 </div>
               </div>
+
+              {/* Contact Button */}
+              <div className="border-t border-gray-200 pt-6">
+                <button
+                  className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+                  onClick={() => {
+                    // Add your contact logic here
+                    window.location.href = '/contact';
+                  }}
+                >
+                  Contact Us
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Description Section - Full Width Below */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase tracking-wide">Description</h2>
+          {product.description ? (
+            <div className="prose max-w-none">
+              <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No description available for this product.</p>
+          )}
         </div>
       </div>
     </div>
